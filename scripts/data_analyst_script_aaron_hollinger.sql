@@ -1,3 +1,7 @@
+SELECT *
+FROM data_analyst_jobs
+
+
 -- 1. How many rows are in the data_analyst_jobs table?
 
 SELECT COUNT (*)
@@ -17,11 +21,11 @@ LIMIT 10;
 
 SELECT COUNT (*)
 FROM data_analyst_jobs
-WHERE LOCATION IN ('TN')
+WHERE LOCATION IN ('TN');
 
 SELECT COUNT (*)
 FROM data_analyst_jobs
-WHERE LOCATION IN ('TN','KY')
+WHERE LOCATION IN ('TN','KY');
 
 Answer:
 --Tennessee: 21
@@ -29,17 +33,17 @@ Answer:
 
 -- 4.	How many postings in Tennessee have a star rating above 4?
 
-SELECT COUNT (*)
+SELECT COUNT (title)
 FROM data_analyst_jobs
-WHERE star_rating > 4
+WHERE star_rating > 4 AND location = 'TN';
 
---Answer: 416
+--Answer: 3
 
 -- 5.	How many postings in the dataset have a review count between 500 and 1000?
 
 SELECT COUNT (title)
 FROM data_analyst_jobs
-WHERE review_count BETWEEN 500 AND 1000
+WHERE review_count BETWEEN 500 AND 1000;
 
 --Answer: 151
 
@@ -47,15 +51,16 @@ WHERE review_count BETWEEN 500 AND 1000
 
 SELECT location AS state, AVG(star_rating) AS avg_rating
 FROM data_analyst_jobs
+WHERE location IS NOT NULL
 GROUP BY location
-ORDER BY avg_rating DESC
+ORDER BY avg_rating DESC;
 
 --Answer: Nebraska
 
 -- 7.	Select unique job titles from the data_analyst_jobs table. How many are there?
 
 SELECT COUNT(DISTINCT title)
-FROM data_analyst_jobs
+FROM data_analyst_jobs;
 
 --Answer: 881
 
@@ -63,44 +68,66 @@ FROM data_analyst_jobs
 
 SELECT COUNT (DISTINCT title)
 FROM data_analyst_jobs
-WHERE location IN ('CA')
+WHERE location IN ('CA');
 
 --Answer: 230
 
 -- 9.	Find the name of each company and its average star rating for all companies that have more than 5000 reviews across all locations. How many companies are there with more that 5000 reviews across all locations?
 
+--New Version:
 
-SELECT company, AVG(star_rating) AS avg_rating
+SELECT company, AVG(star_rating) AS avg_rating, SUM(review_count) AS review_total
 FROM data_analyst_jobs
+WHERE company IS NOT NULL
 GROUP BY company
+HAVING SUM(review_count) > 5000
 
-SELECT company, AVG(star_rating) AS avg_rating
-FROM data_analyst_jobs
-WHERE review_count > 5000
-GROUP BY company
-
-SELECT COUNT(company)
-FROM data_analyst_jobs
-WHERE review_count > 5000
-
---Answer: 184
+--Answer: 70 (this excludes any records with unidentified companies)
 
 -- 10.	Add the code to order the query in #9 from highest to lowest average star rating. Which company with more than 5000 reviews across all locations in the dataset has the highest star rating? What is that rating?
 
-SELECT company, AVG(star_rating) AS avg_rating
+SELECT company, AVG(star_rating) AS avg_rating, SUM(review_count) AS review_total
 FROM data_analyst_jobs
-WHERE review_count > 5000
+WHERE company IS NOT NULL
 GROUP BY company
-ORDER BY avg_rating DESC
+HAVING SUM(review_count) > 5000
+ORDER BY avg_rating DESC;
 
---Answer: 
+--Answer: Google has the highest rating at 4.30
 
 -- 11.	Find all the job titles that contain the word ‘Analyst’. How many different job titles are there? 
 
+SELECT title
+FROM data_analyst_jobs
+WHERE lower(title) LIKE lower('%Analyst%');
+
+--Code above displays all job titles
+
+SELECT COUNT(DISTINCT title)
+FROM data_analyst_jobs
+WHERE lower(title) LIKE lower('%Analyst%');
+
+--Answer - different job titles: 774
+
 -- 12.	How many different job titles do not contain either the word ‘Analyst’ or the word ‘Analytics’? What word do these positions have in common?
+
+SELECT DISTINCT title
+FROM data_analyst_jobs
+WHERE lower(title) NOT LIKE lower('%Analyst%') AND lower(title) NOT LIKE lower('%Analytics%');
+
+--Answer: These positions have 'Tableau' in common.
 
 **BONUS:**
 You want to understand which jobs requiring SQL are hard to fill. Find the number of jobs by industry (domain) that require SQL and have been posted longer than 3 weeks. 
  - Disregard any postings where the domain is NULL. 
  - Order your results so that the domain with the greatest number of `hard to fill` jobs is at the top. 
   - Which three industries are in the top 4 on this list? How many jobs have been listed for more than 3 weeks for each of the top 4?
+
+SELECT COUNT(skill) AS skill_count, domain
+FROM data_analyst_jobs
+WHERE days_since_posting > 21 AND (domain IS NOT NULL AND lower(skill) LIKE lower('%sql%'))
+GROUP BY domain
+ORDER BY skill_count DESC;
+
+
+
